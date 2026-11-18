@@ -1,0 +1,46 @@
+name: Monitor Concursos CFE
+
+on:
+  # Permite ejecutarlo manualmente desde la web de GitHub con un botón
+  workflow_dispatch:
+    inputs:
+      palabra_clave:
+        description: 'Palabra a buscar en la descripción (dejar vacío para todos)'
+        required: false
+        default: ''
+  # Se ejecuta automáticamente cada 4 horas
+  schedule:
+    - cron: '0 */4 * * *'
+
+jobs:
+  ejecutar-monitor:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar código del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Instalar librerías y Chromium
+        run: |
+          pip install -r requirements.txt
+          playwright install chromium
+          playwright install-deps
+
+      - name: Ejecutar monitor de CFE
+        env:
+          PALABRA_CLAVE: ${{ github.event.inputs.palabra_clave || 'LINEAS DE TRANSMISION' }}
+        run: python monitor_cfe_cloud.py
+
+      - name: Guardar CSV y captura como archivo descargable
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: resultados-cfe
+          path: |
+            concursos_cfe_vigentes.csv
+            captura_cfe.png
