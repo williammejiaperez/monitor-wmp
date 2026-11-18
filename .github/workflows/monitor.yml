@@ -1,16 +1,18 @@
 name: Monitor Concursos CFE
 
 on:
-  # Permite ejecutarlo manualmente desde la web de GitHub con un botón
   workflow_dispatch:
     inputs:
       palabra_clave:
         description: 'Palabra a buscar en la descripción (dejar vacío para todos)'
         required: false
         default: ''
-  # Se ejecuta automáticamente cada 4 horas
   schedule:
     - cron: '0 */4 * * *'
+
+# Permiso necesario para que el robot pueda guardar el CSV en tu repositorio
+permissions:
+  contents: write
 
 jobs:
   ejecutar-monitor:
@@ -36,11 +38,9 @@ jobs:
           PALABRA_CLAVE: ${{ github.event.inputs.palabra_clave || 'LINEAS DE TRANSMISION' }}
         run: python monitor_cfe_cloud.py
 
-      - name: Guardar CSV y captura como archivo descargable
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: resultados-cfe
-          path: |
-            concursos_cfe_vigentes.csv
-            captura_cfe.png
+      - name: Guardar y subir CSV al repositorio
+        run: |
+          git config --local user.email "github-actions[bot]@://github.com"
+          git config --local user.name "GitHub Actions Bot"
+          git add concursos_cfe_vigentes.csv
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Actualización automática concursos CFE" && git push)
