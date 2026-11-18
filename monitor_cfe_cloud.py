@@ -3,7 +3,7 @@ import time
 import pandas as pd
 from playwright.sync_api import sync_playwright
 
-URL_CONCURSOS = "https://cfe.mx"
+URL_CONCURSOS = "https://msc.cfe.mx/Aplicaciones/NCFE/Concursos/"
 # Lee la palabra clave desde GitHub Actions, o usa "" para traer todos los vigentes
 PALABRA_CLAVE = os.getenv("PALABRA_CLAVE", "").strip()
 
